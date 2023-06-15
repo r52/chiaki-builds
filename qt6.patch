@@ -65,6 +65,31 @@ index 4b0ba01..6f77b01 100644
  		QIODevice *audio_io;
  		SDL_AudioDeviceID haptics_output;
  		uint8_t *haptics_resampler_buf;
+diff --git a/gui/src/mainwindow.cpp b/gui/src/mainwindow.cpp
+index 0912b2e..51555bc 100644
+--- a/gui/src/mainwindow.cpp
++++ b/gui/src/mainwindow.cpp
+@@ -82,7 +82,6 @@ MainWindow::MainWindow(Settings *settings, QWidget *parent)
+ 	auto layout = new QVBoxLayout();
+ 	main_widget->setLayout(layout);
+ 	setCentralWidget(main_widget);
+-	layout->setMargin(0);
+ 
+ 	auto LoadIcon = [this](const QString &filename) {
+ 		return QIcon(new IconEngine(filename));
+diff --git a/gui/src/settings.cpp b/gui/src/settings.cpp
+index 6d296d1..86b175d 100644
+--- a/gui/src/settings.cpp
++++ b/gui/src/settings.cpp
+@@ -419,7 +419,7 @@ QMap<int, Qt::Key> Settings::GetControllerMapping()
+ 	{
+ 		auto button_name = GetChiakiControllerButtonName(chiaki_button).replace(' ', '_').toLower();
+ 		if(settings.contains("keymap/" + button_name))
+-			result[static_cast<int>(chiaki_button)] = Qt::Key(QKeySequence(settings.value("keymap/" + button_name).toString())[0]);
++			result[static_cast<int>(chiaki_button)] = Qt::Key(QKeySequence(settings.value("keymap/" + button_name).toString())[0].key());
+ 	}
+ 
+ 	return result;
 diff --git a/gui/src/settingsdialog.cpp b/gui/src/settingsdialog.cpp
 index 1770932..ff82a5d 100644
 --- a/gui/src/settingsdialog.cpp
