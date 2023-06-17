@@ -1,7 +1,5 @@
 # (Unofficial) Chiaki builds
 
-[![Build Release](https://github.com/alvaromunoz/chiaki-builds/actions/workflows/Build-win_x64.yml/badge.svg)](https://github.com/alvaromunoz/chiaki-builds/actions/workflows/Build-win_x64.yml)
-
 This is just a repo with [Chiaki](https://git.sr.ht/~thestr4ng3r/chiaki) as a
 Git submodule, automating the build scripts on GitHub Actions Workflows.
 
@@ -9,32 +7,6 @@ So far only Windows x64 builds have been automated, using both MSYS2 and Visual 
 
 If you want to download the official releases, please check out the original repo:
 [https://git.sr.ht/~thestr4ng3r/chiaki](https://git.sr.ht/~thestr4ng3r/chiaki)
-
-## Why?
-
-[Because](https://git.sr.ht/~thestr4ng3r/chiaki/tree/master/doc/platform-build.md):
-
-> Windows support is reduced to the absolute minimum for maintainability.
-
-SDL2 has not been updated from 2.0.10 (2.0.14 introduced support for Dualsense
-controllers in Windows), and the binary release has a problem with blinking
-frames. It seems that building using updated libraries and software fixes
-these issues, so I wanted to automate this to be as open as possible.
-
-### What's updated by new libraries?
-
-- Support for PlayStation Dualsense and XBox Series S|X controllers
-- Hardware video acceleration for decoding
-
-### What's not updated?
-
-- Choppy audio (YMMV)
-
-### What's missing (but from the official release, too)?
-
-- Motion controls
-- Rumble / force feedback
-- Adaptative triggers
 
 # About Chiaki
 

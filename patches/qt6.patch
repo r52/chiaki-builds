@@ -1,0 +1,186 @@
+diff --git a/gui/CMakeLists.txt b/gui/CMakeLists.txt
+index 443150f..e897078 100644
+--- a/gui/CMakeLists.txt
++++ b/gui/CMakeLists.txt
+@@ -2,9 +2,9 @@
+ set(CMAKE_INCLUDE_CURRENT_DIR ON)
+ set(CMAKE_AUTOMOC ON)
+ set(CMAKE_AUTORCC ON)
+-find_package(Qt5 REQUIRED COMPONENTS Core Widgets Gui Concurrent Multimedia OpenGL Svg)
++find_package(Qt6 REQUIRED COMPONENTS Core Widgets Gui Concurrent Multimedia OpenGL Svg OpenGLWidgets)
+ if(APPLE)
+-	find_package(Qt5 REQUIRED COMPONENTS MacExtras)
++	find_package(Qt6 REQUIRED COMPONENTS MacExtras)
+ endif()
+ 
+ if(WIN32)
+@@ -66,10 +66,10 @@ if(CHIAKI_ENABLE_CLI)
+ 	target_link_libraries(chiaki chiaki-cli-lib)
+ endif()
+ 
+-target_link_libraries(chiaki Qt5::Core Qt5::Widgets Qt5::Gui Qt5::Concurrent Qt5::Multimedia Qt5::OpenGL Qt5::Svg)
++target_link_libraries(chiaki Qt6::Core Qt6::Widgets Qt6::Gui Qt6::Concurrent Qt6::Multimedia Qt6::OpenGL Qt6::Svg Qt6::OpenGLWidgets)
+ target_link_libraries(chiaki SDL2::SDL2)
+ if(APPLE)
+-	target_link_libraries(chiaki Qt5::MacExtras)
++	target_link_libraries(chiaki Qt6::MacExtras)
+ 	target_compile_definitions(chiaki PRIVATE CHIAKI_GUI_ENABLE_QT_MACEXTRAS)
+ endif()
+ if(CHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER)
+diff --git a/gui/include/settings.h b/gui/include/settings.h
+index 00f38ab..d88ba0f 100644
+--- a/gui/include/settings.h
++++ b/gui/include/settings.h
+@@ -8,7 +8,7 @@
+ #include "host.h"
+ 
+ #include <QSettings>
+-#include <QAudioDeviceInfo>
++#include <QAudioDevice>
+ 
+ enum class ControllerButtonExt
+ {
+diff --git a/gui/include/streamsession.h b/gui/include/streamsession.h
+index 4b0ba01..6f77b01 100644
+--- a/gui/include/streamsession.h
++++ b/gui/include/streamsession.h
+@@ -27,7 +27,7 @@
+ #include <QMouseEvent>
+ #include <QTimer>
+ 
+-class QAudioOutput;
++class QAudioSink;
+ class QIODevice;
+ class QKeyEvent;
+ class Settings;
+@@ -98,9 +98,9 @@ class StreamSession : public QObject
+ 		ChiakiPiDecoder *pi_decoder;
+ #endif
+ 
+-		QAudioDeviceInfo audio_out_device_info;
++		QAudioDevice audio_out_device_info;
+ 		unsigned int audio_buffer_size;
+-		QAudioOutput *audio_output;
++		QAudioSink *audio_output;
+ 		QIODevice *audio_io;
+ 		SDL_AudioDeviceID haptics_output;
+ 		uint8_t *haptics_resampler_buf;
+diff --git a/gui/src/mainwindow.cpp b/gui/src/mainwindow.cpp
+index 0912b2e..51555bc 100644
+--- a/gui/src/mainwindow.cpp
++++ b/gui/src/mainwindow.cpp
+@@ -82,7 +82,6 @@ MainWindow::MainWindow(Settings *settings, QWidget *parent)
+ 	auto layout = new QVBoxLayout();
+ 	main_widget->setLayout(layout);
+ 	setCentralWidget(main_widget);
+-	layout->setMargin(0);
+ 
+ 	auto LoadIcon = [this](const QString &filename) {
+ 		return QIcon(new IconEngine(filename));
+diff --git a/gui/src/settings.cpp b/gui/src/settings.cpp
+index 6d296d1..86b175d 100644
+--- a/gui/src/settings.cpp
++++ b/gui/src/settings.cpp
+@@ -419,7 +419,7 @@ QMap<int, Qt::Key> Settings::GetControllerMapping()
+ 	{
+ 		auto button_name = GetChiakiControllerButtonName(chiaki_button).replace(' ', '_').toLower();
+ 		if(settings.contains("keymap/" + button_name))
+-			result[static_cast<int>(chiaki_button)] = Qt::Key(QKeySequence(settings.value("keymap/" + button_name).toString())[0]);
++			result[static_cast<int>(chiaki_button)] = Qt::Key(QKeySequence(settings.value("keymap/" + button_name).toString())[0].key());
+ 	}
+ 
+ 	return result;
+diff --git a/gui/src/settingsdialog.cpp b/gui/src/settingsdialog.cpp
+index 1770932..ff82a5d 100644
+--- a/gui/src/settingsdialog.cpp
++++ b/gui/src/settingsdialog.cpp
+@@ -20,6 +20,7 @@
+ #include <QLineEdit>
+ #include <QtConcurrent>
+ #include <QFutureWatcher>
++#include <QMediaDevices>
+ 
+ #include <chiaki/config.h>
+ #include <chiaki/ffmpegdecoder.h>
+@@ -110,15 +111,15 @@ SettingsDialog::SettingsDialog(Settings *settings, QWidget *parent) : QDialog(pa
+ 
+ 	// do this async because it's slow, assuming availableDevices() is thread-safe
+ 	auto audio_devices_future = QtConcurrent::run([]() {
+-		return QAudioDeviceInfo::availableDevices(QAudio::AudioOutput);
++		return QMediaDevices::audioOutputs();
+ 	});
+-	auto audio_devices_future_watcher = new QFutureWatcher<QList<QAudioDeviceInfo>>(this);
+-	connect(audio_devices_future_watcher, &QFutureWatcher<QList<QAudioDeviceInfo>>::finished, this, [this, audio_devices_future_watcher, settings]() {
++	auto audio_devices_future_watcher = new QFutureWatcher<QList<QAudioDevice>>(this);
++	connect(audio_devices_future_watcher, &QFutureWatcher<QList<QAudioDevice>>::finished, this, [this, audio_devices_future_watcher, settings]() {
+ 		auto available_devices = audio_devices_future_watcher->result();
+ 		while(audio_device_combo_box->count() > 1) // remove all but "Auto"
+ 			audio_device_combo_box->removeItem(1);
+-		for(QAudioDeviceInfo di : available_devices)
+-			audio_device_combo_box->addItem(di.deviceName(), di.deviceName());
++		for(QAudioDevice di : available_devices)
++			audio_device_combo_box->addItem(di.description(), di.description());
+ 		int audio_out_device_index = audio_device_combo_box->findData(settings->GetAudioOutDevice());
+ 		audio_device_combo_box->setCurrentIndex(audio_out_device_index < 0 ? 0 : audio_out_device_index);
+ 	});
+diff --git a/gui/src/streamsession.cpp b/gui/src/streamsession.cpp
+index 42c9959..84b3bbd 100644
+--- a/gui/src/streamsession.cpp
++++ b/gui/src/streamsession.cpp
+@@ -7,7 +7,8 @@
+ #include <chiaki/base64.h>
+ 
+ #include <QKeyEvent>
+-#include <QAudioOutput>
++#include <QAudioSink>
++#include <QMediaDevices>
+ 
+ #include <cstring>
+ #include <chiaki/session.h>
+@@ -102,12 +103,12 @@ StreamSession::StreamSession(const StreamSessionConnectInfo &connect_info, QObje
+ 	}
+ #endif
+ 
+-	audio_out_device_info = QAudioDeviceInfo::defaultOutputDevice();
++	audio_out_device_info = QMediaDevices::defaultAudioOutput();
+ 	if(!connect_info.audio_out_device.isEmpty())
+ 	{
+-		for(QAudioDeviceInfo di : QAudioDeviceInfo::availableDevices(QAudio::AudioOutput))
++		for(QAudioDevice di : QMediaDevices::audioOutputs())
+ 		{
+-			if(di.deviceName() == connect_info.audio_out_device)
++			if(di.description() == connect_info.audio_out_device)
+ 			{
+ 				audio_out_device_info = di;
+ 				break;
+@@ -406,25 +407,23 @@ void StreamSession::InitAudio(unsigned int channels, unsigned int rate)
+ 	QAudioFormat audio_format;
+ 	audio_format.setSampleRate(rate);
+ 	audio_format.setChannelCount(channels);
+-	audio_format.setSampleSize(16);
+-	audio_format.setCodec("audio/pcm");
+-	audio_format.setSampleType(QAudioFormat::SignedInt);
++	audio_format.setSampleFormat(QAudioFormat::Int16);
+ 
+-	QAudioDeviceInfo audio_device_info = audio_out_device_info;
++	QAudioDevice audio_device_info = audio_out_device_info;
+ 	if(!audio_device_info.isFormatSupported(audio_format))
+ 	{
+ 		CHIAKI_LOGE(log.GetChiakiLog(), "Audio Format with %u channels @ %u Hz not supported by Audio Device %s",
+ 					channels, rate,
+-					audio_device_info.deviceName().toLocal8Bit().constData());
++					audio_device_info.description().toLocal8Bit().constData());
+ 		return;
+ 	}
+ 
+-	audio_output = new QAudioOutput(audio_device_info, audio_format, this);
++	audio_output = new QAudioSink(audio_device_info, audio_format, this);
+ 	audio_output->setBufferSize(audio_buffer_size);
+ 	audio_io = audio_output->start();
+ 
+ 	CHIAKI_LOGI(log.GetChiakiLog(), "Audio Device %s opened with %u channels @ %u Hz, buffer size %u",
+-				audio_device_info.deviceName().toLocal8Bit().constData(),
++				audio_device_info.description().toLocal8Bit().constData(),
+ 				channels, rate, audio_output->bufferSize());
+ }
+ 
