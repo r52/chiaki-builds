@@ -19,9 +19,10 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: Apply Qt6 patch
+      - name: Apply Patches
         run: |
           git apply --directory=chiaki/ qt6.patch
+          git apply --directory=chiaki/ server_crash_fix.patch
 
       - name: Setup NASM
         run: |
