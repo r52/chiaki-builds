@@ -2,3 +2,6 @@
 	path = chiaki
 	url = https://git.sr.ht/~thestr4ng3r/chiaki
 	branch = master
+[submodule "opus"]
+	path = opus
+	url = https://github.com/xiph/opus
