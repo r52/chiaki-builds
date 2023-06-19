@@ -83,8 +83,9 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure & Build Opus
-        working-directory: opus
         run: |
+          git clone https://github.com/xiph/opus.git
+          cd opus
           cmake `
           -S . `
           -B build `
