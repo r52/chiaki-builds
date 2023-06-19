@@ -107,7 +107,7 @@ jobs:
           -DCHIAKI_ENABLE_CLI=OFF `
           -DCHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER=ON `
           -DPYTHON_EXECUTABLE="${{ env.pythonLocation }}\python.exe" `
-          -DCMAKE_PREFIX_PATH="${{ github.workspace }}\nanopb;${{ github.workspace }}\ffmpeg;${{ github.workspace }}\opus-bin;${{ github.workspace }}\openssl\x64;${{ github.workspace }}\SDL2;${{ env.Qt6_Dir }}"
+          -DCMAKE_PREFIX_PATH="${{ github.workspace }}\ffmpeg;${{ github.workspace }}\opus-bin;${{ github.workspace }}\openssl\x64;${{ github.workspace }}\SDL2"
 
       - name: Build Chiaki
         working-directory: chiaki
