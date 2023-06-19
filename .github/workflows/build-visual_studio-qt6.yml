@@ -65,7 +65,7 @@ jobs:
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install --upgrade setuptools wheel
-          python3 -m pip install --user --upgrade scons protobuf grpcio-tools pyinstaller
+          python3 -m pip install --user --upgrade scons protobuf==4.23.3 grpcio-tools pyinstaller
           python3 -c 'import google.protobuf; print(google.protobuf.__file__)'
 
       - name: Setup Qt
@@ -86,13 +86,12 @@ jobs:
         run: |
           git clone https://github.com/xiph/opus.git
           cd opus
-          mkdir build
           cmake `
           -S . `
           -B build `
           -G "Visual Studio 17 2022" -A x64 `
           -DCMAKE_BUILD_TYPE=Release `
-          -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}\opus-prefix"
+          -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}\opus-bin"
           cmake --build build --config Release
           cmake --install build
 
@@ -109,7 +108,7 @@ jobs:
           -DCHIAKI_ENABLE_CLI=OFF `
           -DCHIAKI_GUI_ENABLE_SDL_GAMECONTROLLER=ON `
           -DPYTHON_EXECUTABLE="${{ env.pythonLocation }}\python.exe" `
-          -DCMAKE_PREFIX_PATH="${{ github.workspace }}\nanopb;${{ github.workspace }}\ffmpeg;${{ github.workspace }}\opus-prefix;${{ github.workspace }}\openssl\x64;${{ github.workspace }}\SDL2;${{ env.Qt6_Dir }}"
+          -DCMAKE_PREFIX_PATH="${{ github.workspace }}\ffmpeg;${{ github.workspace }}\opus-bin;${{ github.workspace }}\openssl\x64;${{ github.workspace }}\SDL2"
 
       - name: Build Chiaki
         working-directory: chiaki
