@@ -19,11 +19,6 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: Apply Patches
-        shell: bash
-        run: |
-          git apply --ignore-whitespace --directory=chiaki/ patches/*.patch
-
       - name: Setup ffmpeg
         run: |
           $ProgressPreference = 'SilentlyContinue'
