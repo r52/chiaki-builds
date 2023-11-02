@@ -1,12 +1,18 @@
-name: Build Chiaki (VC Qt6)
+name: Build Chiaki (MSVC Qt6)
 
 on:
   workflow_dispatch:
+    inputs:
+      doRelease:
+        description: 'Publish new release'
+        type: boolean
+        default: false
+        required: false
   workflow_call:
 
 jobs:
   build-win_x64:
-    name: Build Chiaki win_x64 (VC)
+    name: Build Chiaki (MSVC)
     runs-on: windows-latest
 
     defaults:
@@ -141,3 +147,29 @@ jobs:
           path: ${{ env.RELEASE_PACKAGE_PATH }}
           if-no-files-found: error
           retention-days: 1
+
+  publish_release:
+    name: Publish release
+    if: ${{ !cancelled() && github.event.inputs.doRelease == 'true' && needs.build-win_x64.result == 'success' }}
+    needs: build-win_x64
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+      - name: Create release
+        id: create_release
+        run: |
+          set -xe
+          shopt -s nullglob
+          RELDATE="$(date +'%Y-%m-%d %H:%M')"
+          NAME="Auto-Build $RELDATE"
+          TAGNAME="autobuild-$(date +'%Y-%m-%d-%H-%M')"
+          gh release create "$TAGNAME" --target "master" --title "$NAME" artifacts/*.{zip,tar.xz}
+          echo "tag_name=${TAGNAME}" >> $GITHUB_OUTPUT
+          echo "rel_date=${RELDATE}" >> $GITHUB_OUTPUT
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
