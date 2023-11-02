@@ -30,14 +30,14 @@ jobs:
       - name: Setup protoc
         run: |
           $ProgressPreference = 'SilentlyContinue'
-          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/protocolbuffers/protobuf/releases/download/v23.4/protoc-23.4-win64.zip" -OutFile ".\protobuf.zip"
+          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/protocolbuffers/protobuf/releases/download/v24.4/protoc-24.4-win64.zip" -OutFile ".\protobuf.zip"
           Expand-Archive -LiteralPath ".\protobuf.zip" -DestinationPath ".\protobuf"
           Write-Output "${{ github.workspace }}\protobuf\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Setup OpenSSL
         run: |
           $ProgressPreference = 'SilentlyContinue'
-          Invoke-WebRequest -UseBasicParsing -Uri "https://download.firedaemon.com/FireDaemon-OpenSSL/openssl-1.1.1u.zip" -OutFile ".\openssl.zip"
+          Invoke-WebRequest -UseBasicParsing -Uri "https://download.firedaemon.com/FireDaemon-OpenSSL/openssl-1.1.1w.zip" -OutFile ".\openssl.zip"
           Expand-Archive -LiteralPath "openssl.zip" -DestinationPath "."
           Rename-Item "openssl-1.1" "openssl"
           Write-Output "${{ github.workspace }}\openssl" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
@@ -45,29 +45,29 @@ jobs:
       - name: Setup SDL2
         run: |
           $ProgressPreference = 'SilentlyContinue'
-          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/libsdl-org/SDL/releases/download/release-2.28.1/SDL2-devel-2.28.1-VC.zip" -OutFile ".\SDL2-devel-VC.zip"
+          Invoke-WebRequest -UseBasicParsing -Uri "https://github.com/libsdl-org/SDL/releases/download/release-2.28.4/SDL2-devel-2.28.4-VC.zip" -OutFile ".\SDL2-devel-VC.zip"
           Expand-Archive -LiteralPath "SDL2-devel-VC.zip" -DestinationPath "."
-          Rename-Item "SDL2-2.28.1" "SDL2"
+          Rename-Item "SDL2-2.28.4" "SDL2"
           Write-Output "SDL2_DIR=${{ github.workspace }}\SDL2" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
 
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.x"
+          python-version: "3.11"
           architecture: "x64"
 
       - name: Install pip dependencies
         run: |
           python3 -m pip install --upgrade pip
           python3 -m pip install --upgrade setuptools wheel
-          python3 -m pip install --user --upgrade scons protobuf==4.23.4 grpcio-tools pyinstaller
+          python3 -m pip install --user --upgrade scons protobuf==4.24.4 grpcio-tools pyinstaller
           python3 -c 'import google.protobuf; print(google.protobuf.__file__)'
 
       - name: Setup Qt
         uses: jurplel/install-qt-action@v3
         with:
           aqtversion: "==3.1.*"
-          version: "6.5.2"
+          version: "6.5.3"
           host: "windows"
           target: "desktop"
           arch: "win64_msvc2019_64"
