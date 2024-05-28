@@ -1,3 +1,5 @@
+# Deprecated. Use [chiaki4deck](https://github.com/streetpea/chiaki4deck) instead.
+
 # (Unofficial) Chiaki builds
 
 This is just a repo with [Chiaki](https://git.sr.ht/~thestr4ng3r/chiaki) as a
